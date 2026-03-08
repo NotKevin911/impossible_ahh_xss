@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Impossible XSS – Comment Board</title>
+  <style>
+    body { font-family: sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.5rem; }
+    textarea { width: 100%; box-sizing: border-box; height: 80px; }
+    button { margin-top: 0.5rem; padding: 0.4rem 1rem; cursor: pointer; }
+    #error { color: red; margin-top: 0.5rem; }
+    .comment { border: 1px solid #ddd; border-radius: 4px; padding: 0.6rem 0.8rem; margin-top: 0.75rem; }
+    .comment time { font-size: 0.75rem; color: #888; display: block; margin-bottom: 0.25rem; }
+  </style>
+</head>
+<body>
+  <h1>Impossible XSS – Comment Board</h1>
+  <p>
+    All comments are sanitized server-side using the
+    <a href="https://github.com/leizongmin/js-xss" rel="noopener noreferrer">xss</a>
+    library before being stored. Try injecting a script – it will be stripped.
+  </p>
+
+  <form id="commentForm">
+    <label for="commentText"><strong>Leave a comment:</strong></label><br />
+    <textarea id="commentText" name="text" placeholder="Type something… or try &lt;script&gt;alert(1)&lt;/script&gt;"></textarea>
+    <div id="error"></div>
+    <button type="submit">Post</button>
+  </form>
+
+  <div id="comments"></div>
+
+  <script>
+    const form = document.getElementById('commentForm');
+    const textarea = document.getElementById('commentText');
+    const errorEl = document.getElementById('error');
+    const commentsEl = document.getElementById('comments');
+
+    async function loadComments() {
+      const res = await fetch('/api/comments');
+      const data = await res.json();
+      commentsEl.replaceChildren();
+      data.slice().reverse().forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'comment';
+        const time = document.createElement('time');
+        time.textContent = new Date(c.createdAt).toLocaleString();
+        // Use textContent / DOM APIs – never innerHTML with untrusted data
+        const p = document.createElement('p');
+        // The server already sanitized c.text, but we use textContent here as
+        // an additional defence-in-depth measure.
+        p.textContent = c.text;
+        div.appendChild(time);
+        div.appendChild(p);
+        commentsEl.appendChild(div);
+      });
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.textContent = '';
+      const text = textarea.value;
+      try {
+        const res = await fetch('/api/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          errorEl.textContent = err.error || 'Something went wrong.';
+          return;
+        }
+        textarea.value = '';
+        await loadComments();
+      } catch (err) {
+        errorEl.textContent = 'Network error – please try again.';
+      }
+    });
+
+    loadComments();
+  </script>
+</body>
+</html>
